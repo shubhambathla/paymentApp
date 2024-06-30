@@ -54,4 +54,38 @@ router.post("./signup", async (req, res) => {
   });
 });
 
+const signinBody = zod.object({
+  username: zod.string().email,
+  passowrd: zod.string(),
+});
+router.post("./signin", async (req, res) => {
+  const { success } = signinBody.safeParse(req.body);
+  if (!success) {
+    res.status(411).json({
+      message: "Error while logging in",
+    });
+  }
+  const user = await User.findOne({
+    username: req.body.username,
+    password: req.body.password,
+  });
+
+  if (user) {
+    const jwt_token = jwt.sign(
+      {
+        userId: user._id,
+      },
+      JWT_SECRET
+    );
+    res.status(200).json({
+      token: jwt_token,
+    });
+    return;
+  }
+
+  res.status(411).json({
+    message: "Error while logging in",
+  });
+});
+
 module.exports = router;
