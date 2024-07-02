@@ -1,9 +1,7 @@
-// backend/routes/user.js
 const express = require("express");
 const zod = require("zod");
 const jwt = require("jsonwebtoken");
 const { User, Account } = require("../db");
-const { Mongoose } = require("mongoose");
 const { JWT_SECRET } = require("../config");
 const { authMiddleware } = require("../middleware");
 
@@ -15,13 +13,16 @@ const userSignup = zod.object({
   firstName: zod.string(),
   lastName: zod.string(),
 });
+const userSignIn = zod.object({
+  username: zod.string().email(),
+  passowrd: zod.string(),
+});
 
-router.post("./signup", async (req, res) => {
+router.post("/signup", async (req, res) => {
   const userDataValidate = userSignup.safeParse(req.body);
-
   if (!userDataValidate.success) {
     res.status(411).json({
-      message: "Email already taken / Incorrect inputs",
+      message: "Incorrect inputs",
     });
   }
 
@@ -61,12 +62,8 @@ router.post("./signup", async (req, res) => {
   });
 });
 
-const signinBody = zod.object({
-  username: zod.string().email,
-  passowrd: zod.string(),
-});
-router.post("./signin", async (req, res) => {
-  const { success } = signinBody.safeParse(req.body);
+router.post("/signin", async (req, res) => {
+  const { success } = userSignIn.safeParse(req.body);
   if (!success) {
     res.status(411).json({
       message: "Error while logging in",
@@ -116,14 +113,9 @@ router.put("/", authMiddleware, async (req, res) => {
   });
 });
 
-const userQueryName = zod.object({
-  firstName: zod.String,
-  lastName: zod.String,
-});
-
 router.get("/filter-user", async (req, res) => {
   const filterName = req.params.filter || "";
-  const user = await User.find({
+  const users = await User.find({
     $or: [
       {
         firstName: { $regex: filterName },
