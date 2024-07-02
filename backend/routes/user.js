@@ -7,7 +7,7 @@ const { authMiddleware } = require("../middleware");
 
 const router = express.Router();
 
-const userSignup = zod.object({
+const signupBody = zod.object({
   username: zod.string().email(),
   password: zod.string(),
   firstName: zod.string(),
@@ -15,11 +15,11 @@ const userSignup = zod.object({
 });
 const userSignIn = zod.object({
   username: zod.string().email(),
-  passowrd: zod.string(),
+  password: zod.string(),
 });
 
 router.post("/signup", async (req, res) => {
-  const userDataValidate = userSignup.safeParse(req.body);
+  const userDataValidate = signupBody.safeParse(req.body);
   if (!userDataValidate.success) {
     res.status(411).json({
       message: "Incorrect inputs",
@@ -65,7 +65,7 @@ router.post("/signup", async (req, res) => {
 router.post("/signin", async (req, res) => {
   const { success } = userSignIn.safeParse(req.body);
   if (!success) {
-    res.status(411).json({
+    return res.status(411).json({
       message: "Error while logging in",
     });
   }
@@ -92,25 +92,41 @@ router.post("/signin", async (req, res) => {
   });
 });
 
-const userUpdate = zod.object({
+const updateBody = zod.object({
   password: zod.string().optional(),
   firstName: zod.string().optional(),
   lastName: zod.string().optional(),
 });
 router.put("/", authMiddleware, async (req, res) => {
-  const userUpdateVerify = userUpdate.safeParse(req.body);
+  const userUpdateVerify = updateBody.safeParse(req.body);
   if (!userUpdateVerify.success) {
     res.status(411).json({
       message: "Error while updating information",
     });
   }
-  await User.updateOne(req.body, {
-    _id: req.userId,
-  });
+  //   await User.updateOne(req.body, {
+  //     _id: req.userId,
+  //   });
 
-  res.status(200).json({
-    message: "Updated successfully",
-  });
+  //   res.status(200).json({
+  //     message: "Updated successfully",
+  //   });
+
+  try {
+    await User.updateOne(
+      { _id: req.userId }, // Filter criteria
+      req.body // Update operations
+    );
+
+    res.status(200).json({
+      message: "Updated successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
 });
 
 router.get("/filter-user", async (req, res) => {

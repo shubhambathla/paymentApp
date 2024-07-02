@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 mongoose.connect(
-  "mongodb+srv://shubham:arumvB2OlOtp6d12@cluster0.h1gsrn2.mongodb.net/"
+  "mongodb+srv://shubham:arumvB2OlOtp6d12@cluster0.h1gsrn2.mongodb.net/paytm"
 );
 //Schema for User
 const userSchema = new mongoose.Schema({
@@ -40,7 +40,7 @@ const accountSchema = new mongoose.Schema({
     required: true,
   },
   balance: {
-    type: number,
+    type: Number,
     required: true,
   },
 });
